@@ -96,12 +96,12 @@ def check_robots(url):
 
         for i in range(len(robots_line)):
             user_agent = (robots_line[i].split())
-            if user_agent != []:
+            if len(user_agent) != 0:
                 if user_agent[0] == "user-agent:":
                     for polic in robots_line[i:]:
 
                         polic = polic.split()
-                        if polic != []:
+                        if len(polic) != 0:
                             print(polic)
 
                             if polic[0] == "disallow:" and len(polic) == 1 or polic[1] != "/":
