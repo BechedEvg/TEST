@@ -58,29 +58,21 @@ class ProductScraper:
 
 
 def get_lists_dict_analogs(dict_product):
-    lists_dict_analogs = []
-    analog_dict_completed = {
-        "vendor_cod": None,
-        "make": None,
-        "name": None,
-        "price": None,
-        "rating": None,
-        "quantity": None,
-        "delivery": None
-    }
+    lists_dict_analogs_completed = []
     list_dict_analogs = dict_product["analogs"]
     for analog_dict in list_dict_analogs:
         offers = analog_dict['offers']
         for offer in offers:
-            analog_dict_completed["vendor_cod"] = analog_dict["detailNum"]
-            analog_dict_completed["make"] = analog_dict['make'],
-            analog_dict_completed["name"] = analog_dict['name'],
-            analog_dict_completed["price"] = offer['displayPrice']['value'],
-            analog_dict_completed["rating"] = offer['rating2']['rating'],
-            analog_dict_completed["quantity"] = offer['quantity'],
-            analog_dict_completed["delivery"] = offer['delivery']['value']
-            lists_dict_analogs.append(analog_dict_completed)
-    return lists_dict_analogs
+            lists_dict_analogs_completed.append({
+                "vendor_cod": analog_dict["detailNum"],
+                "make": analog_dict['make'],
+                "name": analog_dict['make'],
+                "price": offer['displayPrice']['value'],
+                "rating": offer['rating2']['rating'],
+                "quantity": offer['quantity'],
+                "delivery": offer['delivery']['value']
+            })
+    return lists_dict_analogs_completed
 
 
 def get_write_lists_product(input_lists):
@@ -115,6 +107,5 @@ if __name__ == '__main__':
     main()
 
 
-pd = get_emex_dict_products("13050-0D010")
+pd = get_emex_dict_products("243314A000")
 print(get_lists_dict_analogs(pd))
-
