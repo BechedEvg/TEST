@@ -57,9 +57,30 @@ class ProductScraper:
         self.salary = salary
 
 
-def get_list_analogs(dict_product):
-    list_analogs = dict_product["analogs"]
-
+def get_lists_dict_analogs(dict_product):
+    lists_dict_analogs = []
+    analog_dict_completed = {
+        "vendor_cod": None,
+        "make": None,
+        "name": None,
+        "price": None,
+        "rating": None,
+        "quantity": None,
+        "delivery": None
+    }
+    list_dict_analogs = dict_product["analogs"]
+    for analog_dict in list_dict_analogs:
+        offers = analog_dict['offers']
+        for offer in offers:
+            analog_dict_completed["vendor_cod"] = analog_dict["detailNum"]
+            analog_dict_completed["make"] = analog_dict['make'],
+            analog_dict_completed["name"] = analog_dict['name'],
+            analog_dict_completed["price"] = offer['displayPrice']['value'],
+            analog_dict_completed["rating"] = offer['rating2']['rating'],
+            analog_dict_completed["quantity"] = offer['quantity'],
+            analog_dict_completed["delivery"] = offer['delivery']['value']
+            lists_dict_analogs.append(analog_dict_completed)
+    return lists_dict_analogs
 
 
 def get_write_lists_product(input_lists):
@@ -67,7 +88,7 @@ def get_write_lists_product(input_lists):
         list_original_product = list_product[:6]
         vendor_cod = list_product[0]
         dict_product = get_emex_dict_products(vendor_cod)
-        list_analogs = get_list_analogs(dict_product)
+        lists_ditc_analogs = get_lists_dict_analogs(dict_product)
 
 
 # Get a list of products from a dictionary.
@@ -95,4 +116,5 @@ if __name__ == '__main__':
 
 
 pd = get_emex_dict_products("13050-0D010")
-get_list_analogs(pd)
+print(get_lists_dict_analogs(pd))
+
