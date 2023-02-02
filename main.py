@@ -76,11 +76,19 @@ def get_lists_dict_analogs(dict_product):
 
 
 def get_write_lists_product(input_lists):
+    write_list = []
     for list_product in input_lists:
-        list_original_product = list_product[:6]
+        list_original_product = list_product[:5]
         vendor_cod = list_product[0]
         dict_product = get_emex_dict_products(vendor_cod)
         lists_ditc_analogs = get_lists_dict_analogs(dict_product)
+        for dict_analog in lists_ditc_analogs:
+            write_list.append(list_original_product +
+                              [dict_analog['vendor_cod'],
+                               dict_analog['make'],
+                               dict_analog['name'],
+                               dict_analog["price"]])
+    print(write_list)
 
 
 # Get a list of products from a dictionary.
@@ -94,18 +102,14 @@ def get_emex_dict_products(vendor_cod):
 
 
 # Get a ready-made list of goods for recording.
-def get_write_list_products(list_product_elements):
-    pass
+#def get_write_list_products(list_product_elements):
+    #pass
 
 
 def main():
-    pass
-    #input_lists = Exel_RW.read_exel("input.xlsx")
+    input_list = Exel_RW.read_exel("input.xlsx")
+    get_write_lists_product(input_list)
 
 
 if __name__ == '__main__':
     main()
-
-
-pd = get_emex_dict_products("243314A000")
-print(get_lists_dict_analogs(pd))
