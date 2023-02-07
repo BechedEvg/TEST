@@ -1,6 +1,5 @@
 import os
 from operator import itemgetter
-
 import requests
 import urllib3
 import ssl
@@ -90,6 +89,8 @@ def get_lists_product(input_lists):
         dict_product = get_emex_dict_products(vendor_cod)
         lists_dict_analogs = get_lists_dict_analogs(dict_product)
         for dict_analog in lists_dict_analogs:
+            if dict_analog["quantity"] == 1000:
+                dict_analog["quantity"] = "под заказ"
             write_list.append(list_original_product +
                               [dict_analog['vendor_cod'],
                                dict_analog['make'],
@@ -125,7 +126,19 @@ def write_list_data(lists_product):
                     "Наличие, шт.",
                     "Срок доставки, дней",
                     "Ссылка"]]
-    return column_names + sorted(lists_product, key=itemgetter(0, 8, 10))
+    list_product = sorted(lists_product, key=itemgetter(0))
+    list_product = sorted(list_product, key=itemgetter(5))
+    list_product = sorted(list_product, key=itemgetter(8))
+    return column_names + list_product
+
+
+def analysis(lists_data):
+    list_analysis = [["Артикул OEM", 
+                      "Производитель OEM",
+                      "Артикул DFR", 
+                      "Группа продукта", 
+                      "Наименование детали"]]
+    for list_value in lists_data:
 
 
 
@@ -134,7 +147,6 @@ def main():
     product_lists = get_lists_product(input_list)
     write_lists_data = write_list_data(product_lists)
     Exel_RW.write_exel(write_lists_data, "data.xlsx")
-
 
 
 if __name__ == '__main__':
