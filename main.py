@@ -1,7 +1,10 @@
+import os
+from operator import itemgetter
+
 import requests
 import urllib3
 import ssl
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 import pandas as pd
 
 
@@ -37,12 +40,16 @@ class Exel_RW:
         return list_product
 
     def write_exel(write_lists, file_name):
-        workbook = load_workbook(file_name)
-        worksheet = workbook["Sheet"]
-        for list_values in write_lists:
-            worksheet.append(list_values)
+        if file_name not in os.listdir():
+            workbook = Workbook()
             workbook.save(file_name)
             workbook.close()
+        workbook = load_workbook(file_name)
+        worksheet = workbook[workbook.sheetnames[0]]
+        for list_values in write_lists:
+            worksheet.append(list_values)
+        workbook.save(file_name)
+        workbook.close()
 
 
 def get_html(url):
@@ -66,7 +73,7 @@ def get_lists_dict_analogs(dict_product):
             lists_dict_analogs_completed.append({
                 "vendor_cod": analog_dict["detailNum"],
                 "make": analog_dict['make'],
-                "name": analog_dict['make'],
+                "name": analog_dict['name'],
                 "price": offer['displayPrice']['value'],
                 "rating": offer['rating2']['rating'],
                 "quantity": offer['quantity'],
@@ -75,23 +82,26 @@ def get_lists_dict_analogs(dict_product):
     return lists_dict_analogs_completed
 
 
-def get_write_lists_product(input_lists):
+def get_lists_product(input_lists):
     write_list = []
-    for list_product in input_lists:
+    for list_product in input_lists[:2]:
         list_original_product = list_product[:5]
         vendor_cod = list_product[0]
         dict_product = get_emex_dict_products(vendor_cod)
-        lists_ditc_analogs = get_lists_dict_analogs(dict_product)
-        for dict_analog in lists_ditc_analogs:
+        lists_dict_analogs = get_lists_dict_analogs(dict_product)
+        for dict_analog in lists_dict_analogs:
             write_list.append(list_original_product +
                               [dict_analog['vendor_cod'],
                                dict_analog['make'],
                                dict_analog['name'],
-                               dict_analog["price"]])
-    print(write_list)
+                               dict_analog["price"],
+                               dict_analog["rating"],
+                               dict_analog["quantity"],
+                               dict_analog["delivery"],
+                               f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241"])
+    return write_list
 
 
-# Get a list of products from a dictionary.
 def get_emex_dict_products(vendor_cod):
     list_dicts_product = []
     url_part1 = "https://emex.ru/api/search/search?detailNum="
@@ -101,15 +111,32 @@ def get_emex_dict_products(vendor_cod):
     return dict_product
 
 
-# Get a ready-made list of goods for recording.
-#def get_write_list_products(list_product_elements):
-    #pass
+def write_list_data(lists_product):
+    column_names = [["Артикул OEM",
+                    "Производитель OEM",
+                    "Артикул DFR",
+                    "Группа продукта",
+                    "Наименование детали",
+                    "Артикул аналога",
+                    "Бренд аналога",
+                    "Наименование аналога",
+                    "Цена",
+                    "Рейтинг",
+                    "Наличие, шт.",
+                    "Срок доставки, дней",
+                    "Ссылка"]]
+    return column_names + sorted(lists_product, key=itemgetter(0, 8, 10))
+
 
 
 def main():
     input_list = Exel_RW.read_exel("input.xlsx")
-    get_write_lists_product(input_list)
+    product_lists = get_lists_product(input_list)
+    write_lists_data = write_list_data(product_lists)
+    Exel_RW.write_exel(write_lists_data, "data.xlsx")
+
 
 
 if __name__ == '__main__':
     main()
+    pass
