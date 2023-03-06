@@ -56,13 +56,6 @@ def get_html(url):
     return html
 
 
-class ProductScraper:
-
-    def __init__(self, input_lists, salary):
-        self.input_lists = input_lists
-        self.salary = salary
-
-
 def get_lists_dict_analogs(dict_product):
     lists_dict_analogs_completed = []
     list_dict_analogs = dict_product["analogs"]
@@ -83,7 +76,7 @@ def get_lists_dict_analogs(dict_product):
 
 def get_lists_product(input_lists):
     write_list = []
-    for list_product in input_lists[:2]:
+    for list_product in input_lists[:3]:
         list_original_product = list_product[:5]
         vendor_cod = list_product[0]
         dict_product = get_emex_dict_products(vendor_cod)
@@ -133,20 +126,65 @@ def write_list_data(lists_product):
 
 
 def analysis(lists_data):
-    list_analysis = [["Артикул OEM", 
+    list_analysis = [["Артикул OEM",
                       "Производитель OEM",
-                      "Артикул DFR", 
-                      "Группа продукта", 
+                      "Артикул DFR",
+                      "Группа продукта",
                       "Наименование детали"]]
-    for list_value in lists_data:
+    dict_brands = get_dict_brend(lists_data)
+    list_brands = list(dict_brands)
+    list_analysis[0] += list_brands
+    print(list_analysis)
+    for product in lists_data:
+        if dict_brands[product[6]] != 0:
+            list_analysis += [product[:6] + [''] * dict_brands[product[6]] + [product[8]]]
+    return list_analysis
 
+
+def get_dict_brend(list_data):
+    brands = []
+    for list_brend in list_data:
+        brands.append(list_brend[6])
+    brands = sorted(set(brands))
+    dict_brands = {}
+    count = 0
+    for brand in brands:
+        dict_brands[brand] = count
+        count += 1
+    return dict_brands
+
+
+def data_processing_write_lists(list_data):
+    list_processing_data = []
+    filter = True
+    for values in list_data:
+
+        reiting = (values[9]).replace(",", ".").replace("—", "0")
+        quantity = (values[10])
+        if type(quantity) == str:
+            quantity = 5
+        delivery = (values[11])
+
+        if float(reiting) < 4.5:
+            filter = False
+        if quantity < 3:
+            filter = False
+        if delivery > 5:
+            filter = False
+        if filter:
+            list_processing_data.append(values)
+    return list_processing_data
 
 
 def main():
     input_list = Exel_RW.read_exel("input.xlsx")
+
     product_lists = get_lists_product(input_list)
-    write_lists_data = write_list_data(product_lists)
-    Exel_RW.write_exel(write_lists_data, "data.xlsx")
+    rez = analysis(product_lists)
+    #product_lists = data_processing_write_lists(product_lists)
+
+    #write_lists_data = write_list_data(product_lists)
+    Exel_RW.write_exel(rez, "data.xlsx")
 
 
 if __name__ == '__main__':
