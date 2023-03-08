@@ -97,7 +97,6 @@ def get_lists_product(input_lists):
 
 
 def get_emex_dict_products(vendor_cod):
-    list_dicts_product = []
     url_part1 = "https://emex.ru/api/search/search?detailNum="
     url_part2 = "&locationId=29241&showAll=true"
     url = url_part1 + vendor_cod + url_part2
@@ -134,11 +133,14 @@ def analysis(lists_data):
     dict_brands = get_dict_brend(lists_data)
     list_brands = list(dict_brands)
     list_analysis[0] += list_brands
-    print(list_analysis)
-    for product in lists_data:
-        if dict_brands[product[6]] != 0:
-            list_analysis += [product[:6] + [''] * dict_brands[product[6]] + [product[8]]]
-    return list_analysis
+    dict_write = {}
+    for data in lists_data:
+        if data[0] not in dict_write:
+            dict_write[data[0]] = {}
+        if data[5] not in dict_write[data[0]]:
+            dict_write[data[0]][data[5]] = []
+        dict_write[data[0]][data[5]].append(data)
+    print(dict_write)
 
 
 def get_dict_brend(list_data):
@@ -147,10 +149,8 @@ def get_dict_brend(list_data):
         brands.append(list_brend[6])
     brands = sorted(set(brands))
     dict_brands = {}
-    count = 0
     for brand in brands:
-        dict_brands[brand] = count
-        count += 1
+        dict_brands[brand] = ""
     return dict_brands
 
 
@@ -184,7 +184,7 @@ def main():
     #product_lists = data_processing_write_lists(product_lists)
 
     #write_lists_data = write_list_data(product_lists)
-    Exel_RW.write_exel(rez, "data.xlsx")
+    #Exel_RW.write_exel(product_lists, "data.xlsx")
 
 
 if __name__ == '__main__':
