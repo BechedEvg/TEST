@@ -130,6 +130,7 @@ def write_list_analysis(dict_write):
         rez = dict_write[vendor_cod]["data"]
         brands = dict_write[vendor_cod]["brands"]
         list_write_analysis.append(rez + list(brands.values()))
+    return list_write_analysis
 
 
 def analysis(lists_data):
@@ -157,7 +158,8 @@ def analysis(lists_data):
             if analog_cod != "brands" and analog_cod != "data":
                 dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(8))[0]
                 dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = dict_write[vendor_cod][analog_cod][8]
-    write_list_analysis(dict_write)
+    list_analysis += write_list_analysis(dict_write)
+    return list_analysis
 
 
 def get_dict_brend(list_data):
@@ -197,11 +199,11 @@ def main():
     input_list = Exel_RW.read_exel("input.xlsx")
 
     product_lists = get_lists_product(input_list)
-    rez = analysis(product_lists)
+    write_list_analysis = analysis(product_lists)
     #product_lists = data_processing_write_lists(product_lists)
 
     #write_lists_data = write_list_data(product_lists)
-    #Exel_RW.write_exel(product_lists, "data.xlsx")
+    Exel_RW.write_exel(write_list_analysis, "data.xlsx")
 
 
 if __name__ == '__main__':
