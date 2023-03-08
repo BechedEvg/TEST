@@ -140,7 +140,11 @@ def analysis(lists_data):
         if data[5] not in dict_write[data[0]]:
             dict_write[data[0]][data[5]] = []
         dict_write[data[0]][data[5]].append(data)
+    for vendor_cod in dict_write:
+        for analog_cod in dict_write[vendor_cod]:
+            dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(8))[0]
     print(dict_write)
+
 
 
 def get_dict_brend(list_data):
