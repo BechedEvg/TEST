@@ -124,6 +124,14 @@ def write_list_data(lists_product):
     return column_names + list_product
 
 
+def write_list_analysis(dict_write):
+    list_write_analysis = []
+    for vendor_cod in dict_write:
+        rez = dict_write[vendor_cod]["data"]
+        brands = dict_write[vendor_cod]["brands"]
+        list_write_analysis.append(rez + list(brands.values()))
+
+
 def analysis(lists_data):
     list_analysis = [["Артикул OEM",
                       "Производитель OEM",
@@ -137,14 +145,19 @@ def analysis(lists_data):
     for data in lists_data:
         if data[0] not in dict_write:
             dict_write[data[0]] = {}
+            dict_write[data[0]]["data"] = data[:5]
+            dict_write[data[0]]["brands"] = dict_brands.copy()
         if data[5] not in dict_write[data[0]]:
             dict_write[data[0]][data[5]] = []
         dict_write[data[0]][data[5]].append(data)
-    for vendor_cod in dict_write:
-        for analog_cod in dict_write[vendor_cod]:
-            dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(8))[0]
-    print(dict_write)
 
+    for vendor_cod in dict_write:
+        dict_write[vendor_cod]["brands"] = dict_brands.copy()
+        for analog_cod in dict_write[vendor_cod]:
+            if analog_cod != "brands" and analog_cod != "data":
+                dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(8))[0]
+                dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = dict_write[vendor_cod][analog_cod][8]
+    write_list_analysis(dict_write)
 
 
 def get_dict_brend(list_data):
