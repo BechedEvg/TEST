@@ -63,16 +63,17 @@ class ProcessingList:
     def __init__(self, lists_data):
         self.lists_data = lists_data
 
+#увеличить значения от 9 на +1
     def data_processing(self):
         list_processing_data = []
         filter = True
-        for values in self.list_data:
+        for values in self.lists_data:
 
-            rating = (values[9]).replace(",", ".").replace("—", "0")
-            quantity = (values[10])
+            rating = (values[10]).replace(",", ".").replace("—", "0")
+            quantity = (values[11])
             if type(quantity) == str:
                 quantity = 5
-            delivery = (values[11])
+            delivery = (values[12])
 
             if float(rating) < 4.5:
                 filter = False
@@ -85,11 +86,31 @@ class ProcessingList:
         return list_processing_data
 
     def discount_calculation(self):
+        list_processing_data = []
         dict_product_group = {
             "амортизаторы": 15,
             "водяные насосы": 12,
-            
+            "комплекты грм": 12,
+            "модули и катушки зажигания": 13,
+            "привод грм и агрегатов": 11,
+            "свечи зажигания": 11,
+            "ступицы и ступичные подшипники": 15,
+            "термостаты": 12,
+            "тормозная система": 12,
+            "фильтры": 12,
+            "шестерни грм": 12,
+            "элементы подвески и рулевого управления": 13
         }
+        for data in self.lists_data:
+            price = data[8]
+            if data[3].lower in list_processing_data:
+                discount_percentage = list_processing_data[data[3].lower]
+                price_discount = round(price - (price / 100 * discount_percentage))
+            else:
+                price_discount = round(price - (price / 100 * 13))
+            list_processing_data.append(data[:9] + [price_discount] + data[9:])
+        return list_processing_data
+
 
 
 
@@ -118,7 +139,15 @@ def get_lists_dict_analogs(dict_product):
 
 def get_lists_product(input_lists):
     write_list = []
-    for list_product in input_lists[:4]:
+    ###################
+    print(len(input_lists))
+    count = len(input_lists)
+
+    ###############
+    for list_product in input_lists:
+        ########
+        count -= 1
+        print(count)
         sleep(5)
         list_original_product = list_product[:5]
         vendor_cod = list_product[0]
@@ -140,7 +169,6 @@ def get_lists_product(input_lists):
 
 
 def get_emex_dict_products(vendor_cod):
-    print("yes")
     url_part1 = "https://emex.ru/api/search/search?detailNum="
     url_part2 = "&locationId=29241&showAll=true"
     url = url_part1 + vendor_cod + url_part2
@@ -150,21 +178,22 @@ def get_emex_dict_products(vendor_cod):
 
 def write_list_data(lists_product):
     column_names = [["Артикул OEM",
-                    "Производитель OEM",
-                    "Артикул DFR",
-                    "Группа продукта",
-                    "Наименование детали",
-                    "Артикул аналога",
-                    "Бренд аналога",
-                    "Наименование аналога",
-                    "Цена",
-                    "Рейтинг",
-                    "Наличие, шт.",
-                    "Срок доставки, дней",
-                    "Ссылка"]]
+                     "Производитель OEM",
+                     "Артикул DFR",
+                     "Группа продукта",
+                     "Наименование детали",
+                     "Артикул аналога",
+                     "Бренд аналога",
+                     "Наименование аналога",
+                     "Цена",
+                     "Цена с учетом скидки",
+                     "Рейтинг",
+                     "Наличие, шт.",
+                     "Срок доставки, дней",
+                     "Ссылка"]]
     list_product = sorted(lists_product, key=itemgetter(0))
     list_product = sorted(list_product, key=itemgetter(5))
-    list_product = sorted(list_product, key=itemgetter(8))
+    list_product = sorted(list_product, key=itemgetter(9))
     return column_names + list_product
 
 
@@ -200,13 +229,15 @@ def analysis(lists_data):
         dict_write[vendor_cod]["brands"] = dict_brands.copy()
         for analog_cod in dict_write[vendor_cod]:
             if analog_cod != "brands" and analog_cod != "data":
-                dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(8))[0]
+                dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(9))[0]
                 brand_price = dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]]
                 if brand_price != "":
-                    if brand_price > dict_write[vendor_cod][analog_cod][8]:
-                        dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = dict_write[vendor_cod][analog_cod][8]
+                    if brand_price > dict_write[vendor_cod][analog_cod][9]:
+                        dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = \
+                        dict_write[vendor_cod][analog_cod][9]
                 else:
-                    dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = dict_write[vendor_cod][analog_cod][8]
+                    dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = \
+                    dict_write[vendor_cod][analog_cod][9]
     print(dict_write)
     list_analysis += write_list_analysis(dict_write)
     return list_analysis
@@ -227,14 +258,13 @@ def main():
     input_list = Exel_RW.read_exel("input.xlsx")
 
     product_lists = get_lists_product(input_list)
-    #product_lists = data_processing_write_lists(product_lists)
+    product_lists = ProcessingList(product_lists).discount_calculation()
+    product_lists = ProcessingList(product_lists).data_processing()
     write_list_analysis = analysis(product_lists)
 
-
-    #write_lists_data = write_list_data(product_lists)
-    Exel_RW.write_exel(product_lists, "data.xlsx")
-    Exel_RW.write_exel(write_list_analysis, "data.xlsx", "data")
-
+    write_lists_data = write_list_data(product_lists)
+    Exel_RW.write_exel(write_lists_data, "data.xlsx")
+    Exel_RW.write_exel(write_list_analysis, "data.xlsx", "Sheet1")
 
 
 if __name__ == '__main__':
