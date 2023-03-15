@@ -32,11 +32,11 @@ def get_legacy_session():
 # Reading a list of elements from a source file.
 class Exel_RW:
 
-    def read_exel(file_name, count=-1):
+    def read_exel(file_name):
         workbook = pd.read_excel(file_name)
         list_product = []
         for elements in workbook.values:
-            list_product.append(list(elements)[:count])
+            list_product.append(list(elements))
         return list_product
 
     def write_exel(write_lists, file_name, sheet_name=0):
@@ -56,62 +56,6 @@ class Exel_RW:
             worksheet.append(list_values)
         workbook.save(file_name)
         workbook.close()
-
-
-class ProcessingList:
-
-    def __init__(self, lists_data):
-        self.lists_data = lists_data
-
-#увеличить значения от 9 на +1
-    def data_processing(self):
-        list_processing_data = []
-        filter = True
-        for values in self.lists_data:
-
-            rating = (values[10]).replace(",", ".").replace("—", "0")
-            quantity = (values[11])
-            if type(quantity) == str:
-                quantity = 5
-            delivery = (values[12])
-
-            if float(rating) < 4.5:
-                filter = False
-            if quantity < 3:
-                filter = False
-            if delivery > 5:
-                filter = False
-            if filter:
-                list_processing_data.append(values)
-        return list_processing_data
-
-    def discount_calculation(self):
-        list_processing_data = []
-        dict_product_group = {
-            "амортизаторы": 15,
-            "водяные насосы": 12,
-            "комплекты грм": 12,
-            "модули и катушки зажигания": 13,
-            "привод грм и агрегатов": 11,
-            "свечи зажигания": 11,
-            "ступицы и ступичные подшипники": 15,
-            "термостаты": 12,
-            "тормозная система": 12,
-            "фильтры": 12,
-            "шестерни грм": 12,
-            "элементы подвески и рулевого управления": 13
-        }
-        for data in self.lists_data:
-            price = data[8]
-            if data[3].lower in list_processing_data:
-                discount_percentage = list_processing_data[data[3].lower]
-                price_discount = round(price - (price / 100 * discount_percentage))
-            else:
-                price_discount = round(price - (price / 100 * 13))
-            list_processing_data.append(data[:9] + [price_discount] + data[9:])
-        return list_processing_data
-
-
 
 
 def get_html(url):
@@ -139,18 +83,19 @@ def get_lists_dict_analogs(dict_product):
 
 def get_lists_product(input_lists):
     write_list = []
-    ###################
-    print(len(input_lists))
-    count = len(input_lists)
 
-    ###############
-    for list_product in input_lists:
-        ########
-        count -= 1
+
+    count = len(input_lists)
+    for list_product in input_lists[2368:2374]:
+        print(list_product)
+        sleep(2)
         print(count)
-        sleep(5)
-        list_original_product = list_product[:5]
-        vendor_cod = list_product[0]
+        count -= 1
+
+
+        list_original_product = list_product
+        vendor_cod = str(list_product[-1])
+        print(vendor_cod)
         dict_product = get_emex_dict_products(vendor_cod)
         lists_dict_analogs = get_lists_dict_analogs(dict_product)
         for dict_analog in lists_dict_analogs:
@@ -176,97 +121,15 @@ def get_emex_dict_products(vendor_cod):
     return dict_product
 
 
-def write_list_data(lists_product):
-    column_names = [["Артикул OEM",
-                     "Производитель OEM",
-                     "Артикул DFR",
-                     "Группа продукта",
-                     "Наименование детали",
-                     "Артикул аналога",
-                     "Бренд аналога",
-                     "Наименование аналога",
-                     "Цена",
-                     "Цена с учетом скидки",
-                     "Рейтинг",
-                     "Наличие, шт.",
-                     "Срок доставки, дней",
-                     "Ссылка"]]
-    list_product = sorted(lists_product, key=itemgetter(0))
-    list_product = sorted(list_product, key=itemgetter(5))
-    list_product = sorted(list_product, key=itemgetter(9))
-    return column_names + list_product
-
-
-def write_list_analysis(dict_write):
-    list_write_analysis = []
-    for vendor_cod in dict_write:
-        rez = dict_write[vendor_cod]["data"]
-        brands = dict_write[vendor_cod]["brands"]
-        list_write_analysis.append(rez + list(brands.values()))
-    return list_write_analysis
-
-
-def analysis(lists_data):
-    list_analysis = [["Артикул OEM",
-                      "Производитель OEM",
-                      "Артикул DFR",
-                      "Группа продукта",
-                      "Наименование детали"]]
-    dict_brands = get_dict_brand(lists_data)
-    list_brands = list(dict_brands)
-    list_analysis[0] += list_brands
-    dict_write = {}
-    for data in lists_data:
-        if data[0] not in dict_write:
-            dict_write[data[0]] = {}
-            dict_write[data[0]]["data"] = data[:5]
-            dict_write[data[0]]["brands"] = dict_brands.copy()
-        if data[5] not in dict_write[data[0]]:
-            dict_write[data[0]][data[5]] = []
-        dict_write[data[0]][data[5]].append(data)
-
-    for vendor_cod in dict_write:
-        dict_write[vendor_cod]["brands"] = dict_brands.copy()
-        for analog_cod in dict_write[vendor_cod]:
-            if analog_cod != "brands" and analog_cod != "data":
-                dict_write[vendor_cod][analog_cod] = sorted(dict_write[vendor_cod][analog_cod], key=itemgetter(9))[0]
-                brand_price = dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]]
-                if brand_price != "":
-                    if brand_price > dict_write[vendor_cod][analog_cod][9]:
-                        dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = \
-                        dict_write[vendor_cod][analog_cod][9]
-                else:
-                    dict_write[vendor_cod]["brands"][dict_write[vendor_cod][analog_cod][6]] = \
-                    dict_write[vendor_cod][analog_cod][9]
-    print(dict_write)
-    list_analysis += write_list_analysis(dict_write)
-    return list_analysis
-
-
-def get_dict_brand(list_data):
-    brands = []
-    for list_brand in list_data:
-        brands.append(list_brand[6])
-    brands = sorted(set(brands))
-    dict_brands = {}
-    for brand in brands:
-        dict_brands[brand] = ""
-    return dict_brands
-
-
 def main():
     input_list = Exel_RW.read_exel("input.xlsx")
 
     product_lists = get_lists_product(input_list)
-    product_lists = ProcessingList(product_lists).discount_calculation()
-    product_lists = ProcessingList(product_lists).data_processing()
-    write_list_analysis = analysis(product_lists)
+    print(product_lists)
 
-    write_lists_data = write_list_data(product_lists)
-    Exel_RW.write_exel(write_lists_data, "data.xlsx")
-    Exel_RW.write_exel(write_list_analysis, "data.xlsx", "Sheet1")
 
 
 if __name__ == '__main__':
     main()
     pass
+
