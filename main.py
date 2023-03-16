@@ -1,11 +1,14 @@
 import os
-from operator import itemgetter
+from typing import re
+
+from bs4 import BeautifulSoup
 from time import sleep
 import requests
 import urllib3
 import ssl
 from openpyxl import load_workbook, Workbook
 import pandas as pd
+import re
 
 
 class CustomHttpAdapter(requests.adapters.HTTPAdapter):
@@ -77,11 +80,28 @@ def get_html(url):
 
 
 def get_emex_original_list_product(vendor_cod):
+    list_product = []
     url_part1 = "https://emex.ru/products/"
     url_part2 = "/Mitsubishi/29241"
     url = url_part1 + vendor_cod + url_part2
     html_product = get_html(url).text
-    return html_product
+    parser = BeautifulSoup(html_product, "lxml")
+
+    availability = parser.find(class_="sc-b0f3936c-1 kHZHVQ")
+
+    if availability != None:
+        regex_num = re.compile('\d+')
+        reating = parser.find(class_="sc-b0f3936c-1 kHZHVQ").text
+        count = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-13 fuNkfc csqgZG").text))
+        deliveru = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-14 fuNkfc jtgcED").text))
+        price = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-15 fuNkfc gXBVKh").text))
+        list_product.append(reating)
+        list_product.append(count)
+        list_product.append(deliveru)
+        list_product.append(price)
+    else:
+        return False
+    return list_product
 
 
 def get_lists_dict_analogs(dict_product):
@@ -108,6 +128,8 @@ def get_lists_product(input_lists):
     write_list = []
 
 
+# в конце цыкла перебора аналогов(lists_dict_analogs) просто плюсуем list_original_product + list_analog, а добовление в write_list уже
+# делаем поле выполнения цикла
     count = len(input_lists)
     for list_product in input_lists[:3]:
         print(list_product)#########################
@@ -163,5 +185,5 @@ if __name__ == '__main__':
     #main()
     pass
 
-rez = get_emex_original_list_product("1717674")
+rez = get_emex_original_list_product("63219853369")
 print(rez)
