@@ -21,14 +21,6 @@ class CustomHttpAdapter(requests.adapters.HTTPAdapter):
             block=block, ssl_context=self.ssl_context)
 
 
-def get_legacy_session():
-    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-    session = requests.session()
-    session.mount('https://', CustomHttpAdapter(ctx))
-    return session
-
-
 # Reading a list of elements from a source file.
 class Exel_RW:
 
@@ -58,6 +50,27 @@ class Exel_RW:
         workbook.close()
 
 
+class Analysis:
+
+    def __init__(self, list_data, price_original):
+        self.list_data = list_data
+        self.price_original = price_original
+
+    def price_check(self):
+        pass
+
+    def difference_calculation(self):
+        pass
+
+
+def get_legacy_session():
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    session = requests.session()
+    session.mount('https://', CustomHttpAdapter(ctx))
+    return session
+
+
 def get_html(url):
     html = get_legacy_session().get(url)
     return html
@@ -65,19 +78,21 @@ def get_html(url):
 
 def get_lists_dict_analogs(dict_product):
     lists_dict_analogs_completed = []
-    list_dict_analogs = dict_product["analogs"]
-    for analog_dict in list_dict_analogs:
-        offers = analog_dict['offers']
-        for offer in offers:
-            lists_dict_analogs_completed.append({
-                "vendor_cod": analog_dict["detailNum"],
-                "make": analog_dict['make'],
-                "name": analog_dict['name'],
-                "price": offer['displayPrice']['value'],
-                "rating": offer['rating2']['rating'],
-                "quantity": offer['quantity'],
-                "delivery": offer['delivery']['value']
-            })
+
+    if  "analogs" in dict_product:
+        list_dict_analogs = dict_product["analogs"]
+        for analog_dict in list_dict_analogs:
+            offers = analog_dict['offers']
+            for offer in offers:
+                lists_dict_analogs_completed.append({
+                    "vendor_cod": analog_dict["detailNum"],
+                    "make": analog_dict['make'],
+                    "name": analog_dict['name'],
+                    "price": offer['displayPrice']['value'],
+                    "rating": offer['rating2']['rating'],
+                    "quantity": offer['quantity'],
+                    "delivery": offer['delivery']['value']
+                })
     return lists_dict_analogs_completed
 
 
@@ -86,30 +101,36 @@ def get_lists_product(input_lists):
 
 
     count = len(input_lists)
-    for list_product in input_lists[2368:2374]:
-        print(list_product)
+    for list_product in input_lists[:3]:
+        print(list_product)#########################
         sleep(2)
-        print(count)
-        count -= 1
+        print(count)################################
+        count -= 1##############################################
 
 
         list_original_product = list_product
         vendor_cod = str(list_product[-1])
-        print(vendor_cod)
-        dict_product = get_emex_dict_products(vendor_cod)
-        lists_dict_analogs = get_lists_dict_analogs(dict_product)
-        for dict_analog in lists_dict_analogs:
-            if dict_analog["quantity"] == 1000:
-                dict_analog["quantity"] = "под заказ"
-            write_list.append(list_original_product +
-                              [dict_analog['vendor_cod'],
-                               dict_analog['make'],
-                               dict_analog['name'],
-                               dict_analog["price"],
-                               dict_analog["rating"],
-                               dict_analog["quantity"],
-                               dict_analog["delivery"],
-                               f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241"])
+
+        if vendor_cod not in ["nan", "-"]:
+
+            print(vendor_cod)###################################################
+
+            dict_product = get_emex_dict_products(vendor_cod)
+            lists_dict_analogs = get_lists_dict_analogs(dict_product)
+
+            list_analog = []
+            for dict_analog in lists_dict_analogs:
+                if dict_analog["quantity"] == 1000:
+                    dict_analog["quantity"] = "под заказ"
+                write_list.append(list_original_product +
+                                  [dict_analog['vendor_cod'],
+                                   dict_analog['make'],
+                                   dict_analog['name'],
+                                   dict_analog["price"],
+                                   dict_analog["rating"],
+                                   dict_analog["quantity"],
+                                   dict_analog["delivery"],
+                                   f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241"])
     return write_list
 
 
@@ -125,11 +146,10 @@ def main():
     input_list = Exel_RW.read_exel("input.xlsx")
 
     product_lists = get_lists_product(input_list)
-    print(product_lists)
+    Exel_RW.write_exel(product_lists, "korzina.xlsx")
 
 
 
 if __name__ == '__main__':
     main()
     pass
-
