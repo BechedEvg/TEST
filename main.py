@@ -76,6 +76,14 @@ def get_html(url):
     return html
 
 
+def get_emex_original_list_product(vendor_cod):
+    url_part1 = "https://emex.ru/products/"
+    url_part2 = "/Mitsubishi/29241"
+    url = url_part1 + vendor_cod + url_part2
+    html_product = get_html(url).text
+    return html_product
+
+
 def get_lists_dict_analogs(dict_product):
     lists_dict_analogs_completed = []
 
@@ -109,6 +117,7 @@ def get_lists_product(input_lists):
 
 
         list_original_product = list_product
+        list_analog = []
         vendor_cod = str(list_product[-1])
 
         if vendor_cod not in ["nan", "-"]:
@@ -122,15 +131,15 @@ def get_lists_product(input_lists):
             for dict_analog in lists_dict_analogs:
                 if dict_analog["quantity"] == 1000:
                     dict_analog["quantity"] = "под заказ"
-                write_list.append(list_original_product +
-                                  [dict_analog['vendor_cod'],
-                                   dict_analog['make'],
-                                   dict_analog['name'],
-                                   dict_analog["price"],
-                                   dict_analog["rating"],
-                                   dict_analog["quantity"],
-                                   dict_analog["delivery"],
-                                   f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241"])
+                list_analog = [dict_analog['vendor_cod'],
+                               dict_analog['make'],
+                               dict_analog['name'],
+                               dict_analog["price"],
+                               dict_analog["rating"],
+                               dict_analog["quantity"],
+                               dict_analog["delivery"],
+                               f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241"]
+                write_list.append(list_original_product + list_analog)
     return write_list
 
 
@@ -151,5 +160,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    #main()
     pass
+
+rez = get_emex_original_list_product("1717674")
+print(rez)
