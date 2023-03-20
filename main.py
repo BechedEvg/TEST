@@ -1,6 +1,5 @@
 import os
 from typing import re
-import openpyxl
 from bs4 import BeautifulSoup
 from time import sleep
 import requests
@@ -9,6 +8,7 @@ import ssl
 from openpyxl import load_workbook, Workbook
 import pandas as pd
 import re
+from datetime import datetime
 
 
 class CustomHttpAdapter(requests.adapters.HTTPAdapter):
@@ -68,20 +68,46 @@ class Analysis:
     def price_check(self):
         price_data = int(self.list_data[2])
         price_original = int(self.list_original[0])
-        if price_original < price_data:
-            percentage_value = int(abs(((price_original - price_data) / price_data) * 100)) # если цена аналога больше
-            if percentage_value > 30:
-                return False
-            else:
-                return str(percentage_value)
-        elif price_original > price_data:
-            percentage_value = int(abs(((price_data - price_original) / price_original) * 100))  # если цена аналога меньше
+        if price_data < price_original:
+            percentage_value = int(abs((100 - price_data / price_original * 100)))
             if percentage_value > 50:
                 return False
             else:
                 return f"-{percentage_value}"
+        elif price_data > price_original:
+            percentage_value = int(abs((price_data / price_original) * 100 - 100))
+            if percentage_value > 30:
+                return False
+            else:
+                return str(percentage_value)
         else:
             return 0
+
+
+def duplicate_list_exception(list_product, lists_products):
+    lists_products_complete = []
+    for product_list in lists_products:
+        if product_list != list_product:
+            lists_products_complete.append(list_product)
+    return lists_products_complete
+
+
+def get_lists_original_product(dict_product, original):
+    lists_original_products = []
+    counter_analog = 0
+    for dict_analog in dict_product:
+        if counter_analog != 7:
+            if dict_analog["quantity"] == 1000:
+                dict_analog["quantity"] = "под заказ"
+            list_product = [str(dict_analog['price']),
+                            str(dict_analog["rating"]),
+                            str(dict_analog["quantity"]),
+                            str(dict_analog["delivery"]),
+                           ]
+            if int(list_product[3]) < 31 or list_product == original:
+                lists_original_products.append(list_product)
+                counter_analog += 1
+    return lists_original_products
 
 
 def get_legacy_session():
@@ -126,14 +152,13 @@ def get_emex_original_list_product(vendor_cod):
         list_product.append(delivery)
     else:
         return False
-    return list_product
+    return [list_product]
 
 
-def get_lists_dict_analogs(dict_product):
+def get_lists_dict_originals_or_analogs(dict_product, list_name):
     lists_dict_analogs_completed = []
-
     if  "analogs" in dict_product:
-        list_dict_analogs = dict_product["analogs"]
+        list_dict_analogs = dict_product[list_name]
         for analog_dict in list_dict_analogs:
             offers = analog_dict['offers']
             for offer in offers:
@@ -155,8 +180,8 @@ def get_lists_product(input_lists):
 
 # в конце цыкла перебора аналогов(lists_dict_analogs) просто плюсуем list_original_product + list_analog, а добовление в write_list уже
 # делаем поле выполнения цикла
-    count = len(input_lists[3000:])
-    for list_product in input_lists[3000:]:
+    count = len(input_lists[:20])
+    for list_product in input_lists[:20]:
         print(list_product)#########################
 
         print(count)################################
@@ -174,40 +199,47 @@ def get_lists_product(input_lists):
             emex_list_original_product = get_emex_original_list_product(vendor_cod)
 
             if emex_list_original_product:         # если продукт найден
-                list_original_product += emex_list_original_product
+                #list_original_product += emex_list_original_product
 
                 print(vendor_cod)###################################################
 
+
                 dict_product = get_emex_dict_products(vendor_cod)
-                lists_dict_analogs = get_lists_dict_analogs(dict_product)
+                lists_dict_originals = get_lists_dict_originals_or_analogs(dict_product, "originals")
+                lists_original_products_emex = get_lists_original_product(lists_dict_originals, emex_list_original_product)
+                lists_dict_analogs = get_lists_dict_originals_or_analogs(dict_product, "analogs")
+
+
+
 
                 counter_analog = 0
 
-                for dict_analog in lists_dict_analogs:
+                for product_list in lists_original_products_emex:
 
-                    if counter_analog != 5:
+                    wrrite_list_product = list_original_product + product_list
 
 
-                        if dict_analog["quantity"] == 1000:
-                            dict_analog["quantity"] = "под заказ"
-                        list_analog = [dict_analog['make'],
-                                       dict_analog['vendor_cod'],
-                                       dict_analog['price'],
-                                       f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241",
-                                       dict_analog["rating"],
-                                       dict_analog["quantity"],
-                                       dict_analog["delivery"],
-                                       ]
+                    for dict_analog in lists_dict_analogs:
+                        if counter_analog != 5:
+                            if dict_analog["quantity"] == 1000:
+                                dict_analog["quantity"] = "под заказ"
+                            list_analog = [dict_analog['make'],
+                                           dict_analog['vendor_cod'],
+                                           dict_analog['price'],
+                                           f"https://emex.ru/products/{dict_analog['vendor_cod']}/{dict_analog['make']}/29241",
+                                           dict_analog["rating"],
+                                           dict_analog["quantity"],
+                                           dict_analog["delivery"],
+                                           ]
+                            check_by_criterion = Analysis(list_analog, product_list).price_check()
+                            if check_by_criterion:
+                                counter_analog += 1
 
-                        check_by_criterion = Analysis(list_analog, emex_list_original_product).price_check()
-                        if check_by_criterion:
-                            counter_analog += 1
-
-                            list_original_product += list_analog + [check_by_criterion]
-                    else:
-                        counter_analog = 0
-                        break
-                write_list.append(list_original_product)
+                                wrrite_list_product += list_analog + [check_by_criterion]
+                        else:
+                            counter_analog = 0
+                            break
+                    write_list.append(wrrite_list_product)
     return write_list
 
 
@@ -276,7 +308,6 @@ def get_emex_dict_products(vendor_cod):
 
 def main():
     input_list = Exel_RW.read_exel("input.xlsx")
-
     product_lists = get_lists_product(input_list)
     if "korzina.xlsx" not in os.listdir():
         product_lists = write_list_data(product_lists)
@@ -284,13 +315,22 @@ def main():
 
 
 if __name__ == '__main__':
-    #main()
+    main()
     pass
+
+
+#vendor_cod = str(1717674)
+#dict_product = get_emex_dict_products(vendor_cod)
+#lists_dict_originals = get_lists_dict_originals_or_analogs(dict_product, "originals")
+#rez = get_lists_original_product(lists_dict_originals)
+#print(rez)
 
 #rez = get_emex_original_list_product("31424809")1358901gg
 #rezB = ((111904 - 124186) / 124186) * 100 #если цена аналога больше
 #rezM = ((5755 - 4041) / 4041) * 100 #если цена аналога меньше
 
 #print(rezB)
-input_list = Exel_RW.read_exel("input.xlsx")
-print(input_list[2999:3000])
+#input_list = Exel_RW.read_exel("input.xlsx")
+#print(input_list[2999:3000])
+#current_datetime = datetime.now()
+#print(current_datetime)
