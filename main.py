@@ -104,7 +104,7 @@ def get_lists_original_product(dict_product, original):
                             str(dict_analog["quantity"]),
                             str(dict_analog["delivery"]),
                            ]
-            if int(list_product[3]) < 31 or list_product == original:
+            if int(list_product[3]) < 31 and list_product != original:
                 lists_original_products.append(list_product)
                 counter_analog += 1
     return lists_original_products
@@ -180,8 +180,8 @@ def get_lists_product(input_lists):
 
 # в конце цыкла перебора аналогов(lists_dict_analogs) просто плюсуем list_original_product + list_analog, а добовление в write_list уже
 # делаем поле выполнения цикла
-    count = len(input_lists[:20])
-    for list_product in input_lists[:20]:
+    count = len(input_lists)
+    for list_product in input_lists:
         print(list_product)#########################
 
         print(count)################################
@@ -209,12 +209,13 @@ def get_lists_product(input_lists):
                 lists_original_products_emex = get_lists_original_product(lists_dict_originals, emex_list_original_product)
                 lists_dict_analogs = get_lists_dict_originals_or_analogs(dict_product, "analogs")
 
+                emex_list_original_product += lists_original_products_emex
 
 
 
                 counter_analog = 0
 
-                for product_list in lists_original_products_emex:
+                for product_list in emex_list_original_product:
 
                     wrrite_list_product = list_original_product + product_list
 
