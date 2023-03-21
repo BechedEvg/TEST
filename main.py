@@ -84,11 +84,12 @@ class Analysis:
             return 0
 
 
+
 def duplicate_list_exception(list_product, lists_products):
     lists_products_complete = []
     for product_list in lists_products:
         if product_list != list_product:
-            lists_products_complete.append(list_product)
+            lists_products_complete.append(product_list)
     return lists_products_complete
 
 
@@ -209,7 +210,7 @@ def get_lists_product(input_lists):
                 lists_original_products_emex = get_lists_original_product(lists_dict_originals, emex_list_original_product)
                 lists_dict_analogs = get_lists_dict_originals_or_analogs(dict_product, "analogs")
 
-                emex_list_original_product += lists_original_products_emex
+                emex_list_original_product += duplicate_list_exception(emex_list_original_product[0], lists_original_products_emex)
 
 
 
