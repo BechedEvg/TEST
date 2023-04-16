@@ -128,32 +128,42 @@ def get_html(url):
     return html
 
 
-def get_emex_original_list_product(vendor_cod):
-    list_product = []
-    url_part1 = "https://emex.ru/products/"
-    url_part2 = "/Mitsubishi/29241"
-    url = url_part1 + vendor_cod + url_part2
-    html_product = get_html(url).text
-    parser = BeautifulSoup(html_product, "lxml")
-
-    availability = parser.find(class_="sc-b0f3936c-1 kHZHVQ")
-
-    if availability != None:
-        regex_num = re.compile('\d+')
-        rating = parser.find(class_="sc-b0f3936c-1 kHZHVQ").text
-        try:
-            quantity = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-13 fuNkfc csqgZG").text))
-        except:
-            quantity = "под заказ"
-        delivery = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-14 fuNkfc jtgcED").text))
-        price = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-15 fuNkfc gXBVKh").text))
-        list_product.append(price)
-        list_product.append(rating)
-        list_product.append(quantity)
-        list_product.append(delivery)
-    else:
+def get_url_product_emex(vendor_cod):
+    dict_product = get_emex_dict_products(vendor_cod)
+    try:
+        return dict_product["makes"]["list"][0]["url"]
+    except:
         return False
-    return [list_product]
+
+
+def get_emex_original_list_product(vendor_cod):
+
+    list_product = []
+    url = get_url_product_emex(vendor_cod)
+    if url:
+        url = "https://emex.ru/products/" + url
+        html_product = get_html(url).text
+        parser = BeautifulSoup(html_product, "lxml")
+
+        availability = parser.find(class_="sc-b0f3936c-1 kHZHVQ")
+
+        if availability != None:
+            regex_num = re.compile('\d+')
+            rating = parser.find(class_="sc-b0f3936c-1 kHZHVQ").text
+            try:
+                quantity = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-13 fuNkfc csqgZG").text))
+            except:
+                quantity = "под заказ"
+            delivery = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-14 fuNkfc jtgcED").text))
+            price = "".join(regex_num.findall(parser.find(class_="sc-d67ce909-11 sc-d67ce909-15 fuNkfc gXBVKh").text))
+            list_product.append(price)
+            list_product.append(rating)
+            list_product.append(quantity)
+            list_product.append(delivery)
+        else:
+            return False
+        return [list_product]
+    return False
 
 
 def get_lists_dict_originals_or_analogs(dict_product, list_name):
@@ -181,8 +191,8 @@ def get_lists_product(input_lists):
 
 # в конце цыкла перебора аналогов(lists_dict_analogs) просто плюсуем list_original_product + list_analog, а добовление в write_list уже
 # делаем поле выполнения цикла
-    count = len(input_lists)
-    for list_product in input_lists:
+    count = len(input_lists[:5])
+    for list_product in input_lists[:5]:
         print(list_product)#########################
 
         print(count)################################
@@ -242,6 +252,8 @@ def get_lists_product(input_lists):
                             counter_analog = 0
                             break
                     write_list.append(wrrite_list_product)
+            else:
+                write_list.append(list_product + [0])
     return write_list
 
 
@@ -336,3 +348,4 @@ if __name__ == '__main__':
 #print(input_list[2999:3000])
 #current_datetime = datetime.now()
 #print(current_datetime)
+#print(get_url_product_emex("21210840101400"))
