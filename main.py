@@ -187,11 +187,11 @@ def get_lists_dict_originals_or_analogs(dict_product, list_name):
 
 def get_lists_product(input_lists):
     write_list = []
+    write_product_dict = {}
 
-# в конце цыкла перебора аналогов(lists_dict_analogs) просто плюсуем list_original_product + list_analog, а добовление в write_list уже
-# делаем поле выполнения цикла
-    count = len(input_lists[:5])
-    for list_product in input_lists[:5]:
+
+    count = len(input_lists)
+    for list_product in input_lists:
         print(list_product)#########################
 
         print(count)################################
@@ -224,10 +224,12 @@ def get_lists_product(input_lists):
 
 
                 counter_analog = 0
-
+                counter_product = 0
                 for product_list in emex_list_original_product:
 
-                    wrrite_list_product = list_original_product + product_list
+                    #write_product_dict[list_original_product[6]] = {}
+                    #write_product_dict[list_original_product[6]][counter_product] = list_original_product + product_list
+                    write_list_product = list_original_product + product_list
 
 
                     for dict_analog in lists_dict_analogs:
@@ -246,14 +248,18 @@ def get_lists_product(input_lists):
                             if check_by_criterion:
                                 counter_analog += 1
 
-                                wrrite_list_product += list_analog + [check_by_criterion]
+                                write_list_product += list_analog + [check_by_criterion]
+                                #write_product_dict[list_original_product[6]][counter_product] += list_analog + [check_by_criterion]
                         else:
                             counter_analog = 0
                             break
-                    write_list.append(wrrite_list_product)
+                    write_list.append(write_list_product)
+                counter_product += 1
             else:
+                #write_product_dict[list_original_product[6]] = {}
+                #write_product_dict[list_original_product[6]][0] = list_original_product + [0]
                 write_list.append(list_product + [0])
-    print(write_list)
+
     return write_list
 
 
@@ -329,55 +335,5 @@ def main():
 
 
 if __name__ == '__main__':
-    #main()
+    main()
     pass
-
-
-#vendor_cod = str(1717674)
-#dict_product = get_emex_dict_products(vendor_cod)
-#lists_dict_originals = get_lists_dict_originals_or_analogs(dict_product, "originals")
-#rez = get_lists_original_product(lists_dict_originals)
-#print(rez)
-
-#rez = get_emex_original_list_product("31424809")1358901gg
-#rezB = ((111904 - 124186) / 124186) * 100 #если цена аналога больше
-#rezM = ((5755 - 4041) / 4041) * 100 #если цена аналога меньше
-
-#print(rezB)
-#input_list = Exel_RW.read_exel("input.xlsx")
-#print(input_list[2999:3000])
-#current_datetime = datetime.now()
-#print(current_datetime)
-#print(get_url_product_emex("21210840101400"))
-
-def func_chunk(lst, n):
-    for x in range(0, len(lst), n):
-        e_c = lst[x : n + x]
-
-        if len(e_c) < n:
-            e_c = e_c + [None for y in range(n - len(e_c))]
-        yield e_c
-
-
-
-
-
-write_list = [[1, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Заднее крыло', 21210840101400, '739', '3,3', '1', '5'],
-              [2, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Лобовое стекло', 1736251, 0],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '75016', '3,4', '10', '5', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-21'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '62524', '1,7', 'под заказ', '17', 'SAT', 'STFDK20000', 31687, 'https://emex.ru/products/STFDK20000/SAT/29241', '—', 5, 10, '-49', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-5'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '68770', '4,0', '4', '8', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-14'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '86260', '3,4', '10', '11', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-31'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '117847', '2,7', '35', '27', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-50'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '117886', '1,9', '5', '26', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-50'],
-              [3, 'FORD', 'Kuga', 'SUV', 'Массовый', 'Передний бампер', 1801935, '118249', '2,5', '35', '16', 'Signeda', 'PFD04036BAK', 58818, 'https://emex.ru/products/PFD04036BAK/Signeda/29241', '1,0', 3, 4, '-50'], [4, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Диск колесный', 1842559, '35922', '1,8', '12996', '33'], [4, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Диск колесный', 1842559, '32388', '1,0', '12996', '28'],
-              [4, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Диск колесный', 1842559, '49409', '2,3', '12996', '30'], [4, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Диск колесный', 1842559, '58611', '1,0', '12996', '30'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '49581', '5,0', '1', '2', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-47', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-38', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-40', 'AP', 'FD06301501000', 30687, 'https://emex.ru/products/FD06301501000/AP/29241', '1,4', 13, 8, '-38', 'AVG', '2537281A1', 25957, 'https://emex.ru/products/2537281A1/AVG/29241', '1,0', 20, 5, '-47'],
-              [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '45354', '3,6', '6', '7', 'AP', 'FD06301501000', 22534, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-50', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-42', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-32', 'AP', 'FD06301501000', 22993, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 6, '-49', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-35'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '45801', '1,0', '6', '3', 'AP', 'FD06301501000', 22534, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-50', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-43', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-33', 'AP', 'FD06301501000', 22993, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 6, '-49', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-36'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '47388', '1,0', '6', '5', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-45', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-35', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-38', 'AP', 'FD06301501000', 23444, 'https://emex.ru/products/FD06301501000/AP/29241', '2,9', 20, 8, '-50', 'AP', 'FD06301501000', 30687, 'https://emex.ru/products/FD06301501000/AP/29241', '1,4', 13, 8, '-35'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '49035', '3,3', '6', '3', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-46', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-37', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-40', 'AP', 'FD06301501000', 30687, 'https://emex.ru/products/FD06301501000/AP/29241', '1,4', 13, 8, '-37', 'AVG', '2537281A1', 25957, 'https://emex.ru/products/2537281A1/AVG/29241', '1,0', 20, 5, '-47'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '49472', '1,6', '6', '3', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-47', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-38', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-40', 'AP', 'FD06301501000', 30687, 'https://emex.ru/products/FD06301501000/AP/29241', '1,4', 13, 8, '-37', 'AVG', '2537281A1', 25957, 'https://emex.ru/products/2537281A1/AVG/29241', '1,0', 20, 5, '-47'], [5, 'FORD', 'Focus', 'Hatchback', 'Массовый', 'Капот', 1852919, '49472', '1,0', '6', '3', 'AP', 'FD06301501000', 26000, 'https://emex.ru/products/FD06301501000/AP/29241', '1,0', 20, 5, '-47', 'AP', 'FD06301501000', 30500, 'https://emex.ru/products/FD06301501000/AP/29241', '2,6', 17, 5, '-38', 'AP', 'FD06301501000', 29270, 'https://emex.ru/products/FD06301501000/AP/29241', '1,1', 'под заказ', 7, '-40', 'AP', 'FD06301501000', 30687, 'https://emex.ru/products/FD06301501000/AP/29241', '1,4', 13, 8, '-37', 'AVG', '2537281A1', 25957, 'https://emex.ru/products/2537281A1/AVG/29241', '1,0', 20, 5, '-47']]
-for prod in write_list:
-    if len(prod) > 11:
-        rez = (list(func_chunk(prod[11:], 8)))
-        for i in rez:
-            rez = prod[:11] + i
-            print(rez)
-    else:
-        print(prod)
